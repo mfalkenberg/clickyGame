@@ -15,11 +15,13 @@ class App extends Component {
     this.state = {
       friends : friends2,
       currentScore : 0,
-      topScore : 0   
+      topScore : 0,
+      alreadyClicked : []
     };
 
     // This binding is necessary to make `this` work in the callback
     this.handleClick = this.handleClick.bind(this);
+    this.handleFinish = this.handleFinish.bind(this);
   }
 
   render() {
@@ -40,26 +42,54 @@ class App extends Component {
             key={friend.id}
             name={friend.name}
             image={friend.image}
-            onClick={this.handleClick}
-            onFinish={this.handleFinish}
+            doReset={this.state.doReset}
+            onClickCallback={this.handleClick}
+            onFinishCallback={this.handleFinish}
           />  
         ))}
       </Wrapper>  
     );
   }
 
-  handleClick() {
+  handleClick(sender) {
     var friends2 = this.shuffle(this.state.friends);
+    // add this FriendCard to our list of components
+    // that later need to be resetted
+    this.state.alreadyClicked.push(sender)
     this.setState((prevState, props) => ({
       currentScore: prevState.currentScore + 1,
-      friends:friends2
+      friends: friends2,
     }));
-    this.render();
-
   }
 
-  handleFinish(e) {
-    alert("Ende");    
+  handleFinish() {
+    // determine whether this is a highscore and update
+    // the navigation component
+    if(this.state.currentScore > this.state.topScore) {
+      this.setState((prevState, props) => ({
+        topScore: prevState.currentScore,
+        currentScore: 0
+      }));
+      alert("New highscore!! 🦄"); 
+    } else {
+      alert("You lose"); 
+    }
+    
+    // reset all FriendCards that were clicked
+    for (let i = 0 ; i < this.state.alreadyClicked.length ; i++) {
+      this.state.alreadyClicked[i].setState({
+        alreadyClicked: false
+      });
+    }  
+
+    // shuffle the cards to kick off the next game
+    var friends2 = this.shuffle(this.state.friends);
+    this.setState({
+      alreadyClicked :[],
+      friends : friends2
+    });
+
+
   }
 
   // https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
